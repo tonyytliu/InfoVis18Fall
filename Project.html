@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<header>
+        <title>Tang & Song Poets: InfoVis Project by Yitao and Pin</title>
+        <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+        <script src="RadarChart.js"></script>
+        <script src="BarChart.js"></script>
+        <style>
+            /* tooltip */
+            div.tooltip {
+                position: absolute;
+                padding: 4px;
+                border: 0px;
+                border-radius: 6px;
+            }
+            .dot{
+                stroke: black
+            }
+            .axis {
+	            font: 10px sans-serif;
+	        }
+
+            .axis path,
+            .axis line {
+            fill: none;
+            stroke: #000;
+            }
+
+        </style>
+</header>
+<body>
+    <!-- <h3>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        Tang & Song Poets: InfoVis Project by Yitao Liu (yl3438) and Pin Jin (pj743)</h3> -->
+    <div id = "body">
+        <div id="chart"></div>
+        <div id="age_plot"></div>
+        <div id="barchart"></div>
+        <div id="textinfo"></div>
+    </div>
+    <style>
+        div#chart{
+            left: 770px;
+            top: 30px;
+            position: absolute;
+        }
+        div#age_plot{
+            top: 60px;
+            position: absolute;
+        }
+        div#barchart{
+            top: 500px;
+            position: absolute;
+        }
+        div#textinfo{
+            left: 770px;
+            top: 500px;
+            position: absolute;
+        }
+    </style>
+<script>
+
+var color = d3.scale.category10();
+
+var d_tang = [{"axis":"月", value: 0,"old_value": 0},{"axis":"柳", value: 0,"old_value": 0},
+{"axis":"鷓鴣", value: 0,"old_value": 0},{"axis":"雁", value: 0,"old_value": 0},
+{"axis":"魚", value: 0,"old_value": 0},{"axis":"長亭", value: 0,"old_value": 0},
+{"axis":"杜鵑", value: 0,"old_value": 0},{"axis":"草", value: 0,"old_value": 0},
+{"axis":"玉門關", value: 0,"old_value": 0},{"axis":"鴛鴦", value: 0,"old_value": 0},
+{"axis":"風", value: 0,"old_value": 0},{"axis":"煙", value: 0,"old_value": 0},
+{"axis":"霜", value: 0,"old_value": 0},{"axis":"夕照", value: 0,"old_value": 0},
+{"axis":"梧桐", value: 0,"old_value": 0},{"axis":"芭蕉", value: 0,"old_value": 0},
+{"axis":"羌笛", value: 0,"old_value": 0},{"axis":"琵琶", value: 0,"old_value": 0},
+{"axis":"舟", value: 0,"old_value": 0},{"axis":"流水", value: 0,"old_value": 0},
+{"axis":"落花", value: 0,"old_value": 0},{"axis":"鴉", value: 0,"old_value": 0},
+{"axis":"猿", value: 0,"old_value": 0},{"axis":"燕", value: 0,"old_value": 0},
+{"axis":"馬", value: 0,"old_value": 0},{"axis":"酒", value: 0,"old_value": 0},
+{"axis":"樓", value: 0,"old_value": 0},{"axis":"星", value: 0,"old_value": 0},
+{"axis":"鷗", value: 0,"old_value": 0},{"axis":"黍", value: 0,"old_value": 0},
+{"axis":"雞", value: 0,"old_value": 0},{"axis":"菊", value: 0,"old_value": 0},
+{"axis":"梅", value: 0,"old_value": 0},{"axis":"松", value: 0,"old_value": 0},
+{"axis":"雲", value: 0,"old_value": 0},{"axis":"飛蓬", value: 0,"old_value": 0},
+{"axis":"蓮", value: 0,"old_value": 0},{"axis":"蘭", value: 0,"old_value": 0},
+{"axis":"竹", value: 0,"old_value": 0},{"axis":"蟬", value: 0,"old_value": 0},
+{"axis":"冰雪", value: 0,"old_value": 0}]
+
+//Data
+d3.json("tang_song.json", function (error, data) {
+    if (error) throw error;
+    var d_rd = [];
+    var current_author;
+    var last_author;
+    var w = 320;
+    var h = 320;
+    var tooltip
+    // push information used for RadarChart.draw
+    d_rd.push(d_tang);
+    data.forEach(function(n) {
+        if(n.author === "白居易"){
+            d_rd.push(n.yixiang)
+            current_author = n
+            console.log(current_author)}
+    });
+    
+    var mycfg = {w: w, h: h, ExtraWidthX: 180}
+    RadarChart.draw("#chart", d_rd, mycfg,color(current_author.region),color(current_author.region));
+    
+    BarChart.draw("#barchart", current_author.yixiang, color(current_author.region), color(current_author.region))
+    d_rd = [];
+
+    var width = 740,
+        height = 350;
+    //  author selection chart
+    var x = d3.scale.linear().range([0, width-50]);
+    var y = d3.scale.linear().range([height, 0]);
+    x.domain([d3.min(data, function(d) { return d.age[0]; }), d3.max(data, function(d) { return d.age[1];})])
+    y.domain([0, d3.max(data, function(d) { return d.sum;})]);
+    var xAxis = d3.svg.axis()
+                    .scale(x)
+                    .orient("bottom")
+                    .ticks(10);
+    var yAxis = d3.svg.axis()
+                    .scale(y)
+                    .orient("left")
+                    .ticks(10);
+
+    var zoomBeh = d3.behavior.zoom()
+                .x(x)
+                .y(y)
+                .scaleExtent([0.5, 100])
+                .on("zoom", zoomed)
+
+
+    var svg = d3.select("#age_plot").append("svg")
+            .attr("width", width+30)
+            .attr("height", height+30)
+            .call(zoomBeh)
+            .append("g")
+            .attr("transform", "translate(" + 50 + "," + 10 + ")");
+
+
+    function zoomed() {
+        svg.select("#xAxis").call(xAxis);
+        svg.select("#yAxis").call(yAxis);
+
+        svg.selectAll("#timeline")
+            .attr("x", function(d) {return x(d.age[0]); })
+            .attr("width", function(d){return x(d.age[1])-x(d.age[0])})
+            .attr("y", function(d) { return y(d.sum) - 5; })
+            .attr("height", function(d) { return 10; })
+        }
+
+    svg.selectAll("bar")
+      .data(data)
+    .enter().append("rect")
+      .attr('id', "timeline")
+      .style("opacity", function(d){
+          if (d.author === current_author.author){
+              return 1;
+          } else {
+              return 0.2;
+          }
+      })
+      .style("fill", function(d){
+        return color(d["region"])
+      })
+      .attr("x", function(d) { return x(d.age[0]); })
+      .attr("width", function(d){return x(d.age[1])-x(d.age[0])})
+      .attr("y", function(d) { return y(d.sum) - 5; })
+      .attr("height", function(d) { return 10; })
+      .on("mouseover", function(d){
+            d3.select(this).transition(200).style("opacity", 1)
+            tooltip.transition(200)
+                    .style('opacity', 0.8)
+            tooltip.html(d.author + " (" + d.age[0] + "~" +d.age[1] + ")" +
+            " lived in " + d.dynasty + ", " + d.region + "." + 
+            " <br/> He/she totally wrote " + d.sum + " poems."
+            )
+            .style("left", d3.event.pageX + "px")
+            .style("top", d3.event.pageY - 50+ "px");
+      })
+      .on("mouseout", function(d){
+            d3.select(this).transition(200).style("opacity", 0.2)
+            svg.selectAll("#timeline").transition(200).style("opacity", function(d){
+                    if (d.author === current_author.author){return 1;} else {return 0.2;}})
+            tooltip
+                .transition(200)
+                .style('opacity', 0)
+            tooltip.style("left", "-600px")
+                .style("top","-600px");
+      })
+      .on("click", function(d){
+            last_author = current_author;
+            current_author = d;
+            current_author.yixiang.forEach(function(n){
+                last_author.yixiang.forEach(function(l) {
+                    if(l.axis === n.axis){
+                        n.old_number = l.number;
+                        n.old_value = l.value;
+                    }
+                })
+            })
+            // console.log(current_author.yixiang)
+            svg.selectAll("#timeline").style("opacity", function(d){
+                if (d.author === current_author.author){return 1;} else {return 0.2;}})
+            d_rd.push(d_tang)
+
+            d_rd.push(d.yixiang)
+
+            RadarChart.draw("#chart", d_rd, mycfg,color(d.region), color(last_author.region))
+            d_rd = [];
+            yx_lst = []
+            BarChart.draw("#barchart", current_author.yixiang, color(d.region), color(last_author.region))
+            // console.log(d.yixiang[0].axis)
+            d3.select("#author_info")
+                .transition().duration(300).style("opacity",0)
+            var delayInMilliseconds = 400
+            setTimeout(function() {
+                d3.select("#author_info")
+                    .text(current_author.author)
+                    .transition().duration(300).style("opacity",0.6)
+            }, delayInMilliseconds);
+      })
+
+    svg.append("g")
+           .attr("class", "y_cloth")
+           .append("rect")
+            .attr("x", -50)
+            .attr("y", -20)
+            .attr("width", 50)
+            .attr("height", 500)
+            .attr('fill', "white");
+    svg.append("g")
+           .attr("class", "x_cloth")
+           .append("rect")
+            .attr("x", 0)
+            .attr("y", height)
+            .attr("width", 1200)
+            .attr("height", 20)
+            .attr('fill', "white");
+    svg.append("g")
+           .attr("class", "x_cloth")
+           .append("rect")
+            .attr("x", 690)
+            .attr("y", -20)
+            .attr("width", 30)
+            .attr("height", 500)
+            .attr('fill', "white");
+
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr('id','xAxis')
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .append("text")
+      .attr("y",-8)
+      .attr("x", width-20)
+      .text("Year (C.E.)")
+      .style("text-anchor", "end");
+      
+
+    svg.append("g")
+      .attr("class", "y axis")
+      .attr('id','yAxis')
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Number of Works");
+
+    var svg2 = d3.select("#textinfo").append("svg")
+        .attr("width", 500)
+        .attr("height", 230)
+
+    
+    var legend = svg2.selectAll(".legend")
+                            .data(color.domain())
+                            .enter()
+                            .append("g")
+                            .attr("class", "legend")
+                            .attr("transform", function(d, i){
+                                return "translate(0," + i*14 + ")";
+                            });
+            legend.append("rect")
+                .attr("x", 100)
+                .attr("y", 80)
+                .attr("width", 15)
+                .attr("height", 12)
+                .style("fill", color)
+                .style('opacity', 1)
+                ;
+            legend.append("text")
+                .attr("x", 120)
+                .attr("y", 83)
+                .attr("dy", ".5em")
+                .attr("font-size", 12)
+                .style("text-anchor", "front")
+                .text(function(d){
+                    return d;
+                })
+                .style('opacity', 0.6); 
+    svg2.append("text")
+        .attr("x", 95)
+        .attr("y", 70)
+        .text("Region Legend").style('opacity', 0.6)
+    
+    svg2.append("text")
+        .attr("x", 230)
+        .attr("y", 130)
+        .attr("font-size", 20)
+        .text("Selected Author:").style('opacity', 0.6)
+
+    svg2.append("text")
+        .attr("id", "author_info")
+        .attr("x", 231)
+        .attr("y", 170)
+        .attr("font-size", 30)
+        .text(current_author.author).style('opacity', 0.6)
+
+    var signiture = d3.select("#textinfo").append("div")
+        .attr("class", "tooltip")
+        .style("left", "90px")
+        .style("top", "220px")
+        .style('opacity', 0.6)
+        .style('font-family', 'sans-serif')
+        .style('font-size', '15px')
+        .style('background-color', "white")
+        .html("Tang & Song Poets: InfoVis Project by <br/> Yitao Liu (yl3438) and Pin Jin (pj743)");
+        // Tang & Song Poets: InfoVis Project by Yitao Liu (yl3438) and Pin Jin (pj743)
+    
+    svg2.append("text")
+        .attr("x", 346).attr("y", 75)
+        .style('fill', "black")
+        .text('?')
+    var help_circle = svg2.selectAll('circle')
+            .data([1])
+            .enter()
+            .append('circle')
+            .attr("id", "help")
+            .attr("r", 10)
+            .attr("cx", 350).attr("cy", 70)
+            .style('fill', "grey")
+            .style('opacity', 0.3)
+            .attr('stroke','black')
+            .attr('stroke-width',1)
+    help_circle.on("mouseover", function(d){
+        console.log(d3.event.pageX-1000)
+            var h = d3.select("#help")
+            h.style('opacity', 0.8)
+            tooltip2.transition(200)
+                    .style('opacity', 0.8)
+            tooltip2.html("Top-left View:<br/>&nbsp;&nbsp;&nbsp;&nbsp;This is the timeline view with each bar represent an author."
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; Locations of left and right edges represent the breath and death years of each poet."
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; Each bar's distance to the x-axis represents the total number of poems that author <br/> wrote in his or her life."
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; The color of each bar represents the region that author lived in."
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; Click to select specific author."
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; Hover mouse on each bar to check more information."
+            )
+            .style("left", -600 + "px")
+            .style("top",  -300 + "px");
+
+            tooltip3.transition(200)
+                    .style('opacity', 0.8)
+            tooltip3.html("Top-right View:<br/> &nbsp;&nbsp;&nbsp;&nbsp; This is the Z-Star Glyph view."
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; This view shows how the usage frequency of each image (意象) for the selected"
+            + "<br/> author derivates from the weighted mean in his or her dynasty (the Z-score). "
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; The grey circle is the baseline (weighted mean) for each dynasty."
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; Hover mouse on each dot to check more information."
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; When hovered all image with similiar expression of feelings will be enlarged"
+            )
+            .style("left", 0 + "px")
+            .style("top",  -300 + "px");
+
+            tooltip4.transition(200)
+                    .style('opacity', 0.8)
+            tooltip4.html("Bottom-left View:<br/> &nbsp;&nbsp;&nbsp;&nbsp; This is Bar-Chart view."
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; This view shows the comparison of usage between each image (意象) of the "
+            + "<br/> selected author (in term of number of usage). "
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; Hover mouse on each bar to check more information."
+            + "<br/> &nbsp;&nbsp;&nbsp;&nbsp; When hovered all image with similiar expression of feelings will be highlighted."
+            )
+            .style("left", -600 + "px")
+            .style("top", 100  + "px");
+        })
+        .on("mouseout", function(d){
+            var h = d3.select("#help")
+            h.style('opacity', 0.3)
+            tooltip2.transition(300).style('opacity', 0)
+            tooltip2.style("left", "-1000px").style("top","-1000px");
+            tooltip3.transition(300).style('opacity', 0)
+            tooltip3.style("left", "-1000px").style("top","-1000px");
+            tooltip4.transition(300).style('opacity', 0)
+            tooltip4.style("left", "-1000px").style("top","-1000px");
+        })
+
+
+
+    var tooltip2 = d3.select("#textinfo").append("div")
+        .attr("class", "tooltip")
+        .style('opacity', 0)
+        .style('font-family', 'sans-serif')
+        .style('font-size', '13px')
+        .style('background-color', "lightyellow");
+    var tooltip3 = d3.select("#textinfo").append("div")
+    .attr("class", "tooltip")
+    .style('opacity', 0)
+    .style('font-family', 'sans-serif')
+    .style('font-size', '13px')
+    .style('background-color', "lightyellow");
+    var tooltip4 = d3.select("#textinfo").append("div")
+    .attr("class", "tooltip")
+    .style('opacity', 0)
+    .style('font-family', 'sans-serif')
+    .style('font-size', '13px')
+    .style('background-color', "lightyellow");
+
+    tooltip = d3.select("#age_plot").append("div")
+        .attr("class", "tooltip")
+        .style('opacity', 0)
+        .style('font-family', 'sans-serif')
+        .style('font-size', '12px')
+        .style('background-color', "lightyellow");
+});
+
+
+  
+</script>
+</body>
+</html>
