@@ -1,5 +1,5 @@
 # InfoVis18Fall
-Final Project for InfoVis course
+### Final Project for InfoVis course
 
 The main file for our visualization is "Project.html"
 
