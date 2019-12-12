@@ -3,8 +3,8 @@
 <header>
         <title>Tang & Song Poets: InfoVis Project by Yitao and Pin</title>
         <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
-        <script src="RadarChart.js"></script>
-        <script src="BarChart.js"></script>
+        <script src="./RadarChart.js"></script>
+        <script src="./BarChart.js"></script>
         <style>
             /* tooltip */
             div.tooltip {
@@ -84,7 +84,7 @@ var d_tang = [{"axis":"月", value: 0,"old_value": 0},{"axis":"柳", value: 0,"o
 {"axis":"冰雪", value: 0,"old_value": 0}]
 
 //Data
-d3.json("tang_song.json", function (error, data) {
+d3.json("https://raw.githubusercontent.com/tonyytliu/InfoVis18Fall/master/tang_song.json", function (error, data) {
     if (error) throw error;
     var d_rd = [];
     var current_author;
