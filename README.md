@@ -1,6 +1,8 @@
 # InfoVis18Fall
 ### Final Project for InfoVis course
 
+Our project's page: https://tonyytliu.github.io/InfoVis18Fall/
+
 The main file for our visualization is "Project.html"
 
 "RadarChart.js" is for the Z-Star Glyph view (top-right), we implement Z-Star Glyph and corresponding transition and interaction methods based on codes for RadarChart provided by Nadieh Bremer http://bl.ocks.org/nbremer/6506614
